@@ -1,0 +1,5 @@
+.qodo
+node_modules
+*.env
+.prettierrc
+.eslintrc.json

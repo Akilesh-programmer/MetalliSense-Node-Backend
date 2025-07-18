@@ -1,0 +1,32 @@
+{
+  "name": "metallisense-node-backend",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "start:prod": "NODE_ENV=production nodemon server.js",
+    "debug": "ndb server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Akilesh-programmer/MetalliSense-Node-Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Akilesh-programmer/MetalliSense-Node-Backend/issues"
+  },
+  "homepage": "https://github.com/Akilesh-programmer/MetalliSense-Node-Backend#readme",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.16.4"
+  },
+  "devDependencies": {
+    "eslint": "^9.31.0",
+    "prettier": "^3.6.2"
+  }
+}
