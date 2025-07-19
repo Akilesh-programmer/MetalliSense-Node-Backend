@@ -36,6 +36,14 @@ app.use(mongoSanitize());
 // Data sanitization against XSS
 app.use(xss());
 
+// 2) TEST ROUTE
+app.get('/api/v1/test', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Server is working!',
+  });
+});
+
 app.all('/', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
