@@ -3,6 +3,8 @@ const {
   MessageSecurityMode,
   SecurityPolicy,
   AttributeIds,
+  DataType,
+  TimestampsToReturn,
 } = require('node-opcua');
 
 class OPCUAClientService {
@@ -100,6 +102,32 @@ class OPCUAClientService {
     }
   }
 
+  // Read Temperature node
+  async getTemperature() {
+    try {
+      if (!this.isConnected) {
+        throw new Error('Not connected to spectrometer server');
+      }
+
+      const nodeId = `ns=${this.namespace};s=Spectrometer.Temperature`;
+      const dataValue = await this.session.read({
+        nodeId,
+        attributeId: AttributeIds.Value,
+      });
+
+      if (dataValue.statusCode.isGood()) {
+        return dataValue.value.value;
+      } else {
+        throw new Error(
+          `Failed to read temperature: ${dataValue.statusCode.toString()}`,
+        );
+      }
+    } catch (error) {
+      console.error('❌ Get Temperature Error:', error.message);
+      throw new Error(`Failed to get temperature: ${error.message}`);
+    }
+  }
+
   // Write to MetalGrade & IncorrectElementsCount nodes
   async updateConfiguration(grade, count) {
     try {
@@ -175,10 +203,24 @@ class OPCUAClientService {
 
       // Monitor LatestReading node
       const nodeId = `ns=${this.namespace};s=Spectrometer.LatestReading`;
-      const monitoredItem = await this.subscription.monitor({
+
+      const itemToMonitor = {
         nodeId: nodeId,
         attributeId: AttributeIds.Value,
-      });
+      };
+
+      const monitoringParameters = {
+        samplingInterval: 1000,
+        discardOldest: true,
+        queueSize: 10,
+      };
+
+      // The monitor method returns a promise, so we need to await it
+      const monitoredItem = await this.subscription.monitor(
+        itemToMonitor,
+        monitoringParameters,
+        TimestampsToReturn.Both,
+      );
 
       // Handle data changes
       monitoredItem.on('changed', async (dataValue) => {
