@@ -12,6 +12,7 @@ class OPCUAClientService {
     this.isConnected = false;
     this.serverUrl = 'opc.tcp://localhost:4840/spectrometer/';
     this.namespace = 1;
+    this.subscription = null; // For monitoring data changes
   }
 
   // Establish connection to OPC UA server
@@ -73,7 +74,6 @@ class OPCUAClientService {
     }
   }
 
-
   // Read LatestReading node
   async getLatestReading() {
     try {
@@ -99,7 +99,6 @@ class OPCUAClientService {
       throw new Error(`Failed to get latest reading: ${error.message}`);
     }
   }
-
 
   // Write to MetalGrade & IncorrectElementsCount nodes
   async updateConfiguration(grade, count) {
@@ -153,6 +152,77 @@ class OPCUAClientService {
       clientReady: this.client !== null,
       sessionActive: this.session !== null,
     };
+  }
+
+  // Subscribe to LatestReading changes for real-time updates
+  async subscribeToReadings() {
+    try {
+      if (!this.isConnected || !this.session) {
+        throw new Error('Not connected to spectrometer server');
+      }
+
+      // Create subscription for monitoring
+      this.subscription = await this.session.createSubscription2({
+        requestedPublishingInterval: 1000, // Check every 1 second
+        requestedLifetimeCount: 100,
+        requestedMaxKeepAliveCount: 10,
+        maxNotificationsPerPublish: 10,
+        publishingEnabled: true,
+        priority: 10,
+      });
+
+      console.log('✅ Created OPC UA subscription');
+
+      // Monitor LatestReading node
+      const nodeId = `ns=${this.namespace};s=Spectrometer.LatestReading`;
+      const monitoredItem = await this.subscription.monitor({
+        nodeId: nodeId,
+        attributeId: AttributeIds.Value,
+      });
+
+      // Handle data changes
+      monitoredItem.on('changed', async (dataValue) => {
+        try {
+          const reading = dataValue.value.value;
+          const temperature = await this.getTemperature();
+
+          const readingData = {
+            reading: reading,
+            temperature: temperature,
+            timestamp: new Date().toISOString(),
+          };
+
+          console.log('📡 New spectrometer reading received:', readingData);
+
+          // Emit to all connected WebSocket clients
+          if (global.io) {
+            global.io.emit('spectrometer-reading', readingData);
+          }
+        } catch (error) {
+          console.error('❌ Error processing reading change:', error.message);
+        }
+      });
+
+      return { success: true, message: 'Subscribed to readings' };
+    } catch (error) {
+      console.error('❌ Subscription Error:', error.message);
+      throw new Error(`Failed to subscribe to readings: ${error.message}`);
+    }
+  }
+
+  // Unsubscribe from readings
+  async unsubscribeFromReadings() {
+    try {
+      if (this.subscription) {
+        await this.subscription.terminate();
+        this.subscription = null;
+        console.log('✅ Unsubscribed from readings');
+      }
+      return { success: true, message: 'Unsubscribed from readings' };
+    } catch (error) {
+      console.error('❌ Unsubscribe Error:', error.message);
+      throw new Error(`Failed to unsubscribe: ${error.message}`);
+    }
   }
 }
 

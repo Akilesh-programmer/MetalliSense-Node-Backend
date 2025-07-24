@@ -6,12 +6,16 @@ const AppError = require('../utils/AppError');
 exports.connectToSpectrometer = catchAsync(async (req, res, next) => {
   const result = await opcuaClient.connect();
 
+  // Start subscription for real-time updates
+  await opcuaClient.subscribeToReadings();
+
   res.status(200).json({
     status: 'success',
     message: result.message,
     data: {
       connected: true,
       serverUrl: opcuaClient.serverUrl,
+      subscribed: true,
       timestamp: new Date().toISOString(),
     },
   });
@@ -19,6 +23,9 @@ exports.connectToSpectrometer = catchAsync(async (req, res, next) => {
 
 // POST /api/v1/spectrometer/disconnect
 exports.disconnectFromSpectrometer = catchAsync(async (req, res, next) => {
+  // Stop subscription first
+  await opcuaClient.unsubscribeFromReadings();
+
   const result = await opcuaClient.disconnect();
 
   res.status(200).json({
@@ -26,6 +33,7 @@ exports.disconnectFromSpectrometer = catchAsync(async (req, res, next) => {
     message: result.message,
     data: {
       connected: false,
+      subscribed: false,
       timestamp: new Date().toISOString(),
     },
   });
