@@ -10,6 +10,7 @@ const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
 const spectrometerRouter = require('./routes/spectrometerRoutes');
+const metalGradeRouter = require('./routes/metalGradeRoutes');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.get('/api/v1/test', (req, res) => {
 // 3) ROUTES
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/spectrometer', spectrometerRouter);
+app.use('/api/v1/metal-grades', metalGradeRouter);
 
 app.all('/', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
