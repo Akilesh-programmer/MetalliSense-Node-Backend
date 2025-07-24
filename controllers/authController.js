@@ -11,14 +11,14 @@ const signToken = (id) => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
-  
+
   const cookieOptions = {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-    sameSite: 'lax' // Helps with CSRF protection
+    sameSite: 'lax', // Helps with CSRF protection
   };
 
   res.cookie('jwt', token, cookieOptions);
@@ -85,7 +85,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   if (!token) {
     return next(
-      new AppError('You are not logged in! Please log in to get access.', 401)
+      new AppError('You are not logged in! Please log in to get access.', 401),
     );
   }
 
@@ -98,8 +98,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     return next(
       new AppError(
         'The user belonging to this token does no longer exist.',
-        401
-      )
+        401,
+      ),
     );
   }
 
@@ -111,7 +111,59 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.logout = (req, res) => {
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true
+    httpOnly: true,
   });
   res.status(200).json({ status: 'success' });
+};
+
+exports.isLoggedIn = async (req, res, next) => {
+  try {
+    let token;
+    if (req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
+
+    if (!token || token === 'loggedout') {
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          isLoggedIn: false,
+          user: null,
+        },
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          isLoggedIn: false,
+          user: null,
+        },
+      });
+    }
+
+    currentUser.password = undefined;
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        isLoggedIn: true,
+        user: currentUser,
+      },
+    });
+  } catch (error) {
+    // Invalid token or any other error (expired, malformed, etc.)
+    // This is intentional - we want to catch errors and return "not logged in"
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        isLoggedIn: false,
+        user: null,
+      },
+    });
+  }
 };
