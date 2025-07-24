@@ -19,8 +19,9 @@ exports.getMetalGradeByName = catchAsync(async (req, res, next) => {
     );
   }
 
+  // Try case-insensitive search to handle variations like "SG-Iron" vs "SG-IRON"
   const metalGrade = await MetalGradeSpec.findOne({
-    metal_grade: name.toUpperCase(),
+    metal_grade: { $regex: new RegExp(`^${name}$`, 'i') },
   });
 
   if (!metalGrade) {
@@ -60,7 +61,7 @@ exports.getGradeElements = catchAsync(async (req, res, next) => {
   }
 
   const metalGrade = await MetalGradeSpec.findOne({
-    metal_grade: name.toUpperCase(),
+    metal_grade: { $regex: new RegExp(`^${name}$`, 'i') },
   });
 
   if (!metalGrade) {
@@ -89,7 +90,7 @@ exports.checkCompositionSpecs = catchAsync(async (req, res, next) => {
   }
 
   const metalGrade = await MetalGradeSpec.findOne({
-    metal_grade: gradeName.toUpperCase(),
+    metal_grade: { $regex: new RegExp(`^${gradeName}$`, 'i') },
   });
 
   if (!metalGrade) {
