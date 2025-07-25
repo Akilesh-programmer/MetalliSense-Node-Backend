@@ -1,21 +1,27 @@
-const opcuaClient = require('../services/opcuaClient');
+const spectrometerClient = require('../services/spectrometerClient');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 
 // POST /api/v1/spectrometer/connect
 exports.connectToSpectrometer = catchAsync(async (req, res, next) => {
-  const result = await opcuaClient.connect();
+  const result = await spectrometerClient.connect();
 
-  // Start subscription for real-time updates
-  await opcuaClient.subscribeToReadings();
+  // MQTT automatically subscribes to readings on connect
+  // Start subscription for real-time updates (compatibility method)
+  try {
+    await spectrometerClient.subscribeToReadings();
+  } catch (subscriptionError) {
+    console.warn('⚠️ Subscription warning:', subscriptionError.message);
+  }
 
   res.status(200).json({
     status: 'success',
     message: result.message,
     data: {
-      connected: true,
-      serverUrl: opcuaClient.serverUrl,
-      subscribed: true,
+      connected: result.success,
+      offline: result.offline || false,
+      brokerUrl: spectrometerClient.brokerUrl,
+      subscribed: result.success,
       timestamp: new Date().toISOString(),
     },
   });
@@ -23,10 +29,10 @@ exports.connectToSpectrometer = catchAsync(async (req, res, next) => {
 
 // POST /api/v1/spectrometer/disconnect
 exports.disconnectFromSpectrometer = catchAsync(async (req, res, next) => {
-  // Stop subscription first
-  await opcuaClient.unsubscribeFromReadings();
+  // Stop subscription first (compatibility method)
+  await spectrometerClient.unsubscribeFromReadings();
 
-  const result = await opcuaClient.disconnect();
+  const result = await spectrometerClient.disconnect();
 
   res.status(200).json({
     status: 'success',
@@ -41,8 +47,8 @@ exports.disconnectFromSpectrometer = catchAsync(async (req, res, next) => {
 
 // GET /api/v1/spectrometer/latest-reading
 exports.getLatestReading = catchAsync(async (req, res, next) => {
-  const reading = await opcuaClient.getLatestReading();
-  const temperature = await opcuaClient.getTemperature();
+  const reading = await spectrometerClient.getLatestReading();
+  const temperature = await spectrometerClient.getTemperature();
 
   res.status(200).json({
     status: 'success',
@@ -56,7 +62,7 @@ exports.getLatestReading = catchAsync(async (req, res, next) => {
 
 // GET /api/v1/spectrometer/status
 exports.getStatus = catchAsync(async (req, res, next) => {
-  const status = opcuaClient.getConnectionStatus();
+  const status = spectrometerClient.getConnectionStatus();
 
   res.status(200).json({
     status: 'success',
@@ -74,7 +80,7 @@ exports.updateConfiguration = catchAsync(async (req, res, next) => {
     );
   }
 
-  const result = await opcuaClient.updateConfiguration(
+  const result = await spectrometerClient.updateConfiguration(
     metalGrade,
     incorrectElementsCount,
   );
@@ -87,5 +93,28 @@ exports.updateConfiguration = catchAsync(async (req, res, next) => {
       incorrectElementsCount,
       timestamp: new Date().toISOString(),
     },
+  });
+});
+
+// POST /api/v1/spectrometer/generate-reading
+exports.generateReading = catchAsync(async (req, res, next) => {
+  const result = await spectrometerClient.generateReading();
+
+  res.status(200).json({
+    status: 'success',
+    message: result.message,
+    data: {
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+// GET /api/v1/spectrometer/config
+exports.getCurrentConfig = catchAsync(async (req, res, next) => {
+  const config = spectrometerClient.getCurrentConfig();
+
+  res.status(200).json({
+    status: 'success',
+    data: config,
   });
 });

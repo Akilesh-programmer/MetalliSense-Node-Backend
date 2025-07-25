@@ -3,8 +3,27 @@ const dotenv = require('dotenv');
 const { Server } = require('socket.io');
 
 process.on('uncaughtException', (err) => {
-  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
+  console.log('UNCAUGHT EXCEPTION! 💥');
+  console.log('Error name:', err.name);
+  console.log('Error message:', err.message);
+
+  // Handle MQTT connection errors gracefully - don't shutdown server
+  if (
+    err.code === 'ECONNREFUSED' &&
+    err.message &&
+    err.message.includes('1883')
+  ) {
+    console.log(
+      '⚠️ MQTT broker connection failed - server continuing in offline mode',
+    );
+    console.log(
+      '🔄 Backend will operate with mock data until MQTT broker is available',
+    );
+    return; // Don't shutdown the server
+  }
+
+  // For other critical exceptions, shutdown the server
+  console.log('💥 Critical error - shutting down server...');
   process.exit(1);
 });
 
