@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
@@ -49,8 +50,8 @@ app.use(cookieParser());
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
-// Note: XSS protection is now handled by helmet
-// which is more modern and comprehensive
+// Data sanitization against XSS
+app.use(xss());
 
 // 2) TEST ROUTE
 app.get('/api/v1/test', (req, res) => {
