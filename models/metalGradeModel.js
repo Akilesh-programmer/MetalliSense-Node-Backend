@@ -18,7 +18,7 @@ const validateCompositionRange = function (value) {
     }
 
     // Check if min < max
-    if (range[0] >= range[1]) {
+    if (range[0] > range[1]) {
       return false;
     }
   }

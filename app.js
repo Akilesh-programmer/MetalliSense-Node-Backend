@@ -11,22 +11,27 @@ const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
 const metalGradeRouter = require('./routes/metalGradeRoutes');
+const spectrometerRouter = require('./routes/spectrometerRoutes');
 
 const app = express();
 
 // 1) GLOBAL MIDDLEWARES
 // Enable CORS for all routes
-app.use(cors({
-  origin: true, // Allow all origins (for development/testing)
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+app.use(
+  cors({
+    origin: true, // Allow all origins (for development/testing)
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  }),
+);
 
 // Set security HTTP headers
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+);
 
 // Development logging
 if (process.env.NODE_ENV === 'development') {
@@ -64,6 +69,7 @@ app.get('/api/v1/test', (req, res) => {
 // 3) ROUTES
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/metal-grades', metalGradeRouter);
+app.use('/api/v1/spectrometer', spectrometerRouter);
 
 app.all('/', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
