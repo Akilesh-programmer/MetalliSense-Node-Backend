@@ -3,14 +3,12 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
-const spectrometerRouter = require('./routes/spectrometerRoutes');
 const metalGradeRouter = require('./routes/metalGradeRoutes');
 
 const app = express();
@@ -51,8 +49,8 @@ app.use(cookieParser());
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
-// Data sanitization against XSS
-app.use(xss());
+// Note: XSS protection is now handled by helmet
+// which is more modern and comprehensive
 
 // 2) TEST ROUTE
 app.get('/api/v1/test', (req, res) => {
@@ -64,7 +62,6 @@ app.get('/api/v1/test', (req, res) => {
 
 // 3) ROUTES
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/spectrometer', spectrometerRouter);
 app.use('/api/v1/metal-grades', metalGradeRouter);
 
 app.all('/', (req, res, next) => {
