@@ -58,11 +58,12 @@ app.use(mongoSanitize());
 // Data sanitization against XSS
 app.use(xss());
 
-// 2) TEST ROUTE
-app.get('/api/v1/test', (req, res) => {
+// 2) HEALTH CHECK ROUTE
+app.get('/api/v1/health', (req, res) => {
   res.status(200).json({
     status: 'success',
-    message: 'Server is working!',
+    message: 'Server is running!',
+    timestamp: new Date().toISOString(),
   });
 });
 

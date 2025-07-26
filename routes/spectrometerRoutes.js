@@ -4,7 +4,10 @@ const spectrometerController = require('../controllers/spectrometerController');
 
 const router = express.Router();
 
-// All routes are protected
+// Public OPC status route (for testing)
+router.get('/opc-status', spectrometerController.getOPCStatus);
+
+// All other routes are protected
 router.use(authController.protect);
 
 // Special routes (before generic CRUD routes)
@@ -16,6 +19,9 @@ router.post(
   '/generate-synthetic',
   spectrometerController.generateSyntheticReading,
 );
+
+// OPC UA routes
+router.post('/opc-reading', spectrometerController.requestOPCReading);
 
 // Standard CRUD routes
 router
