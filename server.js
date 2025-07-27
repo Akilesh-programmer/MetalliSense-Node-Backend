@@ -24,13 +24,13 @@ const port = process.env.PORT || 3000;
 const server = app.listen(port, async () => {
   console.log(`App running on port ${port}...`);
 
-  // Initialize OPC UA Service
-  console.log('Initializing OPC UA Service...');
-  const opcInitialized = await opcuaService.initialize();
+  // Initialize OPC UA Server only (Client connection controlled by frontend)
+  console.log('Initializing OPC UA Server...');
+  const opcInitialized = await opcuaService.initializeServerOnly();
   if (opcInitialized) {
-    console.log('✅ OPC UA Service ready');
+    console.log('✅ OPC UA Server ready (Client connection pending)');
   } else {
-    console.log('❌ OPC UA Service failed to initialize');
+    console.log('❌ OPC UA Server failed to initialize');
   }
 });
 

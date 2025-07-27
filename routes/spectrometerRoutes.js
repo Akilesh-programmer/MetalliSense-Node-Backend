@@ -7,6 +7,10 @@ const router = express.Router();
 // Public OPC status route (for testing)
 router.get('/opc-status', spectrometerController.getOPCStatus);
 
+// Public OPC connection control routes (for frontend demo)
+router.post('/opc-connect', spectrometerController.connectOPCClient);
+router.post('/opc-disconnect', spectrometerController.disconnectOPCClient);
+
 // All other routes are protected
 router.use(authController.protect);
 
