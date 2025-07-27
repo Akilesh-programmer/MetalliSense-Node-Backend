@@ -169,3 +169,39 @@ exports.getOPCStatus = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+// Connect OPC UA Client (Frontend-controlled)
+exports.connectOPCClient = catchAsync(async (req, res, next) => {
+  const result = await opcuaService.connectClient();
+
+  if (result.success) {
+    res.status(200).json({
+      status: 'success',
+      message: result.message,
+      data: {
+        clientStatus: result.status,
+        timestamp: new Date(),
+      },
+    });
+  } else {
+    return next(new AppError(`OPC Connection Error: ${result.error}`, 500));
+  }
+});
+
+// Disconnect OPC UA Client (Frontend-controlled)
+exports.disconnectOPCClient = catchAsync(async (req, res, next) => {
+  const result = await opcuaService.disconnectClient();
+
+  if (result.success) {
+    res.status(200).json({
+      status: 'success',
+      message: result.message,
+      data: {
+        clientStatus: result.status,
+        timestamp: new Date(),
+      },
+    });
+  } else {
+    return next(new AppError(`OPC Disconnection Error: ${result.error}`, 500));
+  }
+});
