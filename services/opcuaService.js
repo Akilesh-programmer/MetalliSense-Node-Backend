@@ -48,7 +48,7 @@ class OPCUAService {
   ) {
     try {
       if (!this.isInitialized) {
-        throw new Error('OPC UA Service not initialized');
+        throw new Error('OPC UA Service not initialized. Please connect the OPC client first using the Connect button.');
       }
 
       // Set deviation elements on server (direct method call since it's same process)
@@ -123,6 +123,10 @@ class OPCUAService {
       const connected = await this.client.connect();
 
       if (connected) {
+        // Set initialized flag when client successfully connects
+        this.isInitialized = true;
+        console.log('OPC UA Service now fully initialized');
+        
         return {
           success: true,
           message: 'OPC UA Client connected successfully',
@@ -154,6 +158,10 @@ class OPCUAService {
 
       console.log('Disconnecting OPC UA Client...');
       await this.client.disconnect();
+
+      // Set initialized flag to false when client disconnects
+      this.isInitialized = false;
+      console.log('OPC UA Service no longer fully initialized (client disconnected)');
 
       return {
         success: true,
