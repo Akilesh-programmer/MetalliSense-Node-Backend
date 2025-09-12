@@ -25,6 +25,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }),
 );
+app.set('trust proxy', 1);
 
 // Set security HTTP headers
 app.use(
