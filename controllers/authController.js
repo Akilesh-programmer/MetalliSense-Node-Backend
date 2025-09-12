@@ -18,7 +18,7 @@ const createSendToken = (user, statusCode, res) => {
     ),
     httpOnly: true,
     secure: true, // Only send over HTTPS in production
-    sameSite: 'true', // Helps with CSRF protection
+    sameSite: 'none', // Helps with CSRF protection
   };
 
   res.cookie('jwt', token, cookieOptions);
