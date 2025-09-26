@@ -24,6 +24,10 @@ router.post(
   spectrometerController.generateSyntheticReading,
 );
 router.post('/metal-alone', spectrometerController.metalAloneGeneration);
+router.post(
+  '/metal-scrap-synthetic',
+  spectrometerController.metalScrapSyntheticReading,
+);
 
 // OPC UA routes
 router.post('/opc-reading', spectrometerController.requestOPCReading);
