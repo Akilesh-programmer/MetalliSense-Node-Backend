@@ -4,7 +4,7 @@ const metalGradeController = require('../controllers/metalGradeController');
 
 const router = express.Router();
 
-router.use(authController.protect);
+// router.use(authController.protect);
 
 router.get('/names', metalGradeController.getGradeNames);
 router.post('/by-name', metalGradeController.getMetalGradeByName);
