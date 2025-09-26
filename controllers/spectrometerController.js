@@ -205,3 +205,69 @@ exports.disconnectOPCClient = catchAsync(async (req, res, next) => {
     return next(new AppError(`OPC Disconnection Error: ${result.error}`, 500));
   }
 });
+
+// Generates a synthetic reading via OPC UA based on a single metal grade input.
+// Randomly chooses whether the reading is fully within spec or has 1-4 deviated elements.
+exports.metalAloneGeneration = catchAsync(async (req, res, next) => {
+  const { metalGrade } = req.body;
+
+  if (!metalGrade) {
+    return next(new AppError('Metal grade is required', 400));
+  }
+
+  // Validate metal grade exists
+  const MetalGradeSpec = require('../models/metalGradeModel');
+  const gradeSpec = await MetalGradeSpec.findOne({
+    metal_grade: metalGrade.toUpperCase(),
+  });
+
+  if (!gradeSpec) {
+    return next(
+      new AppError(`Metal grade '${metalGrade}' not found in specifications`, 400),
+    );
+  }
+
+  // Decide whether to generate a correct reading or include deviations
+  const makeIncorrect = Math.random() < 0.5; // 50% chance to introduce deviations
+
+  let deviationElements = [];
+  // If we should introduce deviations, pick between 1 and 4 random elements from spec
+  if (makeIncorrect) {
+    const elements = Array.from(gradeSpec.composition_range.keys());
+    if (elements.length > 0) {
+      const maxDeviations = Math.min(4, elements.length);
+      const count = Math.floor(1 + Math.random() * maxDeviations); // 1..maxDeviations
+
+      // Pick `count` unique random elements
+      const shuffled = elements.sort(() => 0.5 - Math.random());
+      deviationElements = shuffled.slice(0, count);
+    }
+  }
+
+  // Random deviation percentage between 5% and 20%
+  const deviationPercentage = Math.round(5 + Math.random() * 15);
+
+  // Request the OPC UA server to generate the reading using the service
+  const result = await opcuaService.requestSpectrometerReading(
+    metalGrade,
+    deviationElements,
+    deviationPercentage,
+  );
+
+  if (!result.success) {
+    return next(new AppError(`OPC UA Error: ${result.error}`, 500));
+  }
+
+  // Return the raw OPC data and metadata about deviations
+  res.status(200).json({
+    status: 'success',
+    data: {
+      opcData: result.data,
+      deviationsRequested: deviationElements,
+      deviationPercentageRequested: deviationPercentage,
+      note: makeIncorrect
+        ? 'This reading includes intentional deviations for testing.'
+        : 'This reading was generated without intentional deviations (within spec).',
+    },
+  });
+});

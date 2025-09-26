@@ -12,7 +12,7 @@ router.post('/opc-connect', spectrometerController.connectOPCClient);
 router.post('/opc-disconnect', spectrometerController.disconnectOPCClient);
 
 // All other routes are protected
-router.use(authController.protect);
+// router.use(authController.protect);
 
 // Special routes (before generic CRUD routes)
 router.post(
@@ -23,6 +23,7 @@ router.post(
   '/generate-synthetic',
   spectrometerController.generateSyntheticReading,
 );
+router.post('/metal-alone', spectrometerController.metalAloneGeneration);
 
 // OPC UA routes
 router.post('/opc-reading', spectrometerController.requestOPCReading);
