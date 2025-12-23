@@ -13,6 +13,12 @@ const userRouter = require('./routes/userRoutes');
 const metalGradeRouter = require('./routes/metalGradeRoutes');
 const spectrometerRouter = require('./routes/spectrometerRoutes');
 
+// V2 Routes
+const gradeSpecRouter = require('./routes/gradeSpecRoutes');
+const trainingDataRouter = require('./routes/trainingDataRoutes');
+const syntheticRouter = require('./routes/syntheticRoutes');
+const aiRouter = require('./routes/aiRoutes');
+
 const app = express();
 
 // 1) GLOBAL MIDDLEWARES
@@ -72,6 +78,12 @@ app.get('/api/v1/health', (req, res) => {
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/metal-grades', metalGradeRouter);
 app.use('/api/v1/spectrometer', spectrometerRouter);
+
+// V2 Routes
+app.use('/api/v2/grades', gradeSpecRouter);
+app.use('/api/v2/training-data', trainingDataRouter);
+app.use('/api/v2/synthetic', syntheticRouter);
+app.use('/api/v2/ai', aiRouter);
 
 app.all('/', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
