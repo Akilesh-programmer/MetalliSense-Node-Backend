@@ -1,0 +1,27 @@
+const express = require('express');
+const trainingDataController = require('../controllers/trainingDataController');
+
+const router = express.Router();
+
+// Get statistics for a specific grade
+router.get(
+  '/grade/:gradeName/statistics',
+  trainingDataController.getGradeStatistics,
+);
+
+// Get training data by grade
+router.get('/grade/:gradeName', trainingDataController.getTrainingDataByGrade);
+
+// Standard CRUD routes
+router
+  .route('/')
+  .get(trainingDataController.getAllTrainingData)
+  .post(trainingDataController.createTrainingData);
+
+router
+  .route('/:id')
+  .get(trainingDataController.getTrainingDataById)
+  .patch(trainingDataController.updateTrainingData)
+  .delete(trainingDataController.deleteTrainingData);
+
+module.exports = router;
