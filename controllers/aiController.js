@@ -49,31 +49,45 @@ const generateSyntheticReading = async (
   // Apply deviations to specified elements
   const appliedDeviations = [];
   deviationElements.forEach((element) => {
-    const upperElement = element.toUpperCase();
-    if (composition[upperElement] !== undefined) {
-      const baseValue = composition[upperElement];
-      const deviation = (Math.random() - 0.5) * 2 * (deviationPercentage / 100);
-      const deviatedValue = baseValue * (1 + deviation);
+    // Normalize element to PascalCase format (e.g., "fe" or "FE" -> "Fe")
+    const normalizedElement =
+      element.charAt(0).toUpperCase() + element.slice(1).toLowerCase();
+    if (composition[normalizedElement] !== undefined) {
+      const baseValue = composition[normalizedElement];
+      const range = gradeSpec.composition_ranges[normalizedElement];
 
-      // Ensure value stays within grade specification ranges
-      const range = gradeSpec.composition_ranges[upperElement];
       if (range) {
-        composition[upperElement] = Math.max(
-          range[0],
-          Math.min(range[1], deviatedValue),
-        );
+        const [min, max] = range;
+        const tolerance = (max - min) / 2;
+        const deviationAmount = (tolerance * deviationPercentage) / 100;
+
+        // Randomly choose to deviate above max or below min
+        const shouldDeviateUp = Math.random() > 0.5;
+
+        if (shouldDeviateUp) {
+          composition[normalizedElement] = max + deviationAmount; // Exceed upper limit
+        } else {
+          composition[normalizedElement] = Math.max(0, min - deviationAmount); // Go below lower limit (ensure non-negative)
+        }
       } else {
-        composition[upperElement] = deviatedValue;
+        // If no range defined, apply percentage deviation to base value
+        const deviation =
+          ((Math.random() - 0.5) * 2 * deviationPercentage) / 100;
+        composition[normalizedElement] = Math.max(
+          0,
+          baseValue * (1 + deviation),
+        );
       }
 
       appliedDeviations.push({
-        element: upperElement,
+        element: normalizedElement,
         original: parseFloat(baseValue.toFixed(4)),
-        deviated: parseFloat(composition[upperElement].toFixed(4)),
+        deviated: parseFloat(composition[normalizedElement].toFixed(4)),
         deviationPercent: parseFloat(
-          (((composition[upperElement] - baseValue) / baseValue) * 100).toFixed(
-            2,
-          ),
+          (
+            ((composition[normalizedElement] - baseValue) / baseValue) *
+            100
+          ).toFixed(2),
         ),
       });
     }
