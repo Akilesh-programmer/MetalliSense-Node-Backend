@@ -2,8 +2,16 @@ const axios = require('axios');
 
 class AIService {
   constructor() {
-    this.baseURL = process.env.AI_SERVICE_BASE_URL || 'http://localhost:8000';
+    // Individual endpoints URL (anomaly detection, alloy recommendation)
+    this.individualURL =
+      process.env.AI_SERVICE_INDIVIDUAL_URL || 'http://localhost:8000';
+    // Agent endpoint URL (coordinated agent analysis)
+    this.agentURL = process.env.AI_SERVICE_AGENT_URL || 'http://localhost:8000';
     this.timeout = 30000; // 30 seconds timeout
+
+    console.log('AI Service Configuration:');
+    console.log('  Individual Endpoints URL:', this.individualURL);
+    console.log('  Agent Endpoint URL:', this.agentURL);
   }
 
   // Individual Endpoints
@@ -16,7 +24,7 @@ class AIService {
   async detectAnomaly(composition) {
     try {
       const response = await axios.post(
-        `${this.baseURL}/anomaly/predict`,
+        `${this.individualURL}/anomaly/predict`,
         { composition },
         { timeout: this.timeout },
       );
@@ -47,7 +55,7 @@ class AIService {
   async recommendAlloy(grade, composition) {
     try {
       const response = await axios.post(
-        `${this.baseURL}/alloy/recommend`,
+        `${this.individualURL}/alloy/recommend`,
         { grade, composition },
         { timeout: this.timeout },
       );
@@ -112,7 +120,7 @@ class AIService {
   async analyzeWithAgent(grade, composition) {
     try {
       const response = await axios.post(
-        `${this.baseURL}/agents/analyze`,
+        `${this.agentURL}/agents/analyze`,
         { grade, composition },
         { timeout: this.timeout },
       );
@@ -152,7 +160,7 @@ class AIService {
    */
   async healthCheck() {
     try {
-      const response = await axios.get(`${this.baseURL}/health`, {
+      const response = await axios.get(`${this.individualURL}/health`, {
         timeout: 5000,
       });
       return {
