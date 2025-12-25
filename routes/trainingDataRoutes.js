@@ -3,6 +3,12 @@ const trainingDataController = require('../controllers/trainingDataController');
 
 const router = express.Router();
 
+// Paginated endpoint (must be before other routes to avoid conflicts)
+router.get('/paginated', trainingDataController.getPaginatedTrainingData);
+
+// Visualization data endpoint for charts and analytics
+router.get('/visualizations', trainingDataController.getVisualizationData);
+
 // Get statistics for a specific grade
 router.get(
   '/grade/:gradeName/statistics',
