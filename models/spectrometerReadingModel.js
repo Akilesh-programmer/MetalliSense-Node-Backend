@@ -116,16 +116,9 @@ spectrometerReadingSchema.statics.generateSyntheticReading = async function (
     let value;
 
     if (deviationElements.includes(element)) {
-      // Apply intentional deviation
+      // Apply intentional deviation - go BELOW min (never above max)
       const deviationAmount = (tolerance * deviationPercentage) / 100;
-      const shouldDeviateUp = Math.random() > 0.5;
-
-      if (shouldDeviateUp) {
-        value = max + deviationAmount; // Exceed upper limit
-      } else {
-        value = min - deviationAmount; // Go below lower limit
-      }
-      value = Math.max(0, value); // Ensure non-negative
+      value = Math.max(0, min - deviationAmount); // Ensure non-negative
       actualDeviationElements.push(element);
     } else {
       // Generate normal value within range with some random variation
