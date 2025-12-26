@@ -105,7 +105,7 @@ exports.generateSyntheticReading = catchAsync(async (req, res, next) => {
     S: baseSample.S,
   };
 
-  // Apply deviations to specified elements - FORCE deviations OUTSIDE spec ranges
+  // Apply deviations to specified elements - Can go BELOW min but NEVER above max
   const appliedDeviations = [];
 
   deviationElements.forEach((element) => {
@@ -122,14 +122,8 @@ exports.generateSyntheticReading = catchAsync(async (req, res, next) => {
         const tolerance = (max - min) / 2;
         const deviationAmount = (tolerance * deviationPercentage) / 100;
 
-        // Randomly choose to deviate above max or below min
-        const shouldDeviateUp = Math.random() > 0.5;
-
-        if (shouldDeviateUp) {
-          composition[normalizedElement] = max + deviationAmount; // Exceed upper limit
-        } else {
-          composition[normalizedElement] = Math.max(0, min - deviationAmount); // Go below lower limit (ensure non-negative)
-        }
+        // Always deviate BELOW the minimum (never above maximum)
+        composition[normalizedElement] = Math.max(0, min - deviationAmount);
       } else {
         // If no range defined, apply percentage deviation to base value
         const deviation =
