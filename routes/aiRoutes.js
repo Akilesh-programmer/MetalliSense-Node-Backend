@@ -12,4 +12,7 @@ router.post('/individual/analyze', aiController.analyzeIndividual);
 // Agent-based AI analysis (calls agent endpoint)
 router.post('/agent/analyze', aiController.analyzeWithAgent);
 
+// Anomaly prediction
+router.post('/anomaly/predict', aiController.predictAnomaly);
+
 module.exports = router;
