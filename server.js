@@ -5,6 +5,8 @@ process.on('uncaughtException', (err) => {
   console.log('UNCAUGHT EXCEPTION! 💥');
   console.log('Error name:', err.name);
   console.log('Error message:', err.message);
+  console.log('Stack trace:');
+  console.log(err.stack);
 
   console.log('💥 Critical error - shutting down server...');
   process.exit(1);
@@ -13,6 +15,16 @@ process.on('uncaughtException', (err) => {
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 const opcuaService = require('./services/opcuaService');
+const { initializeFirebase } = require('./config/firebase');
+
+// Initialize Firebase Admin
+try {
+  initializeFirebase();
+} catch (error) {
+  console.error('Failed to initialize Firebase:', error.message);
+  console.log('⚠️  Server will continue without Firebase authentication');
+}
+
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD,

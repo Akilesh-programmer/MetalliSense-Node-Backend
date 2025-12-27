@@ -5,3 +5,4 @@ node_modules
 .eslintrc.json
 TODO
 README_FOR_AI
+firebase-service-account.json

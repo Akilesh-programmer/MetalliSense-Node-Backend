@@ -118,6 +118,31 @@ const generateSyntheticReading = async (
   };
 };
 
+// Anomaly Prediction
+exports.predictAnomaly = catchAsync(async (req, res, next) => {
+  const { grade, composition } = req.body;
+
+  if (!grade) {
+    return next(new AppError('Grade is required', 400));
+  }
+
+  if (!composition) {
+    return next(new AppError('Composition is required', 400));
+  }
+
+  // Call AI service for anomaly prediction
+  const result = await aiService.predictAnomaly(grade, composition);
+
+  if (!result.success) {
+    return next(new AppError(result.error || 'AI service unavailable', 503));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: result.data,
+  });
+});
+
 // Individual AI Analysis
 exports.analyzeIndividual = catchAsync(async (req, res, next) => {
   const {

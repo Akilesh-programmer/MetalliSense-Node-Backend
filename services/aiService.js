@@ -47,6 +47,37 @@ class AIService {
   }
 
   /**
+   * Predict anomalies with grade and composition
+   * @param {string} grade - Metal grade
+   * @param {Object} composition - Element composition {Fe, C, Si, Mn, P, S}
+   * @returns {Promise<Object>} Anomaly prediction result
+   */
+  async predictAnomaly(grade, composition) {
+    try {
+      const response = await axios.post(
+        `${this.individualURL}/anomaly/predict`,
+        { grade, composition },
+        { timeout: this.timeout },
+      );
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error('AI Service - Anomaly Prediction Error:', error.message);
+      return {
+        success: false,
+        error: error.response?.data?.detail || error.message,
+        fallback: {
+          anomaly_score: null,
+          severity: 'UNKNOWN',
+          message: 'AI service unavailable',
+        },
+      };
+    }
+  }
+
+  /**
    * Get alloy addition recommendations using individual endpoint
    * @param {string} grade - Metal grade
    * @param {Object} composition - Element composition {Fe, C, Si, Mn, P, S}
