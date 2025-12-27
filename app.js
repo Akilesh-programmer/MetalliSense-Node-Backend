@@ -75,11 +75,13 @@ app.get('/api/v1/health', (req, res) => {
 });
 
 // 3) ROUTES
+// V1 Routes (Legacy)
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/metal-grades', metalGradeRouter);
 app.use('/api/v1/spectrometer', spectrometerRouter);
 
-// V2 Routes
+// V2 Routes (Current - with Firebase Auth)
+app.use('/api/v2/auth', userRouter); // Firebase authentication routes
 app.use('/api/v2/grades', gradeSpecRouter);
 app.use('/api/v2/training-data', trainingDataRouter);
 app.use('/api/v2/synthetic', syntheticRouter);

@@ -1,56 +1,55 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Please tell us your name!'],
-  },
-  email: {
-    type: String,
-    required: [true, 'Please provide your email'],
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email'],
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user',
-  },
-  password: {
-    type: String,
-    required: [true, 'Please provide a password'],
-    minlength: 8,
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, 'Please confirm your password'],
-    validate: {
-      validator: function (el) {
-        return el === this.password;
-      },
-      message: 'Passwords are not the same!',
+// UserMetadata schema for storing additional user data in MongoDB
+// Firebase handles authentication, this stores app-specific metadata
+const userMetadataSchema = new mongoose.Schema(
+  {
+    firebaseUserId: {
+      type: String,
+      required: [true, 'Firebase user ID is required'],
+      unique: true,
+      index: true,
+    },
+    email: {
+      type: String,
+      required: [true, 'Please provide an email'],
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid email'],
+    },
+    name: {
+      type: String,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'operator', 'supervisor'],
+      default: 'user',
+    },
+    department: {
+      type: String,
+    },
+    employeeId: {
+      type: String,
+    },
+    preferences: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    lastActive: {
+      type: Date,
+      default: Date.now,
     },
   },
-});
+  {
+    timestamps: true,
+  },
+);
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  this.passwordConfirm = undefined;
-  next();
-});
+// Index for faster queries
+userMetadataSchema.index({ email: 1 });
+userMetadataSchema.index({ lastActive: -1 });
 
-userSchema.methods.correctPassword = async function (
-  candidatePassword,
-  userPassword,
-) {
-  return await bcrypt.compare(candidatePassword, userPassword);
-};
+const UserMetadata = mongoose.model('UserMetadata', userMetadataSchema);
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = UserMetadata;
